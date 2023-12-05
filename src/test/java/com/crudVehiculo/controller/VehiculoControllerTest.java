@@ -1,9 +1,14 @@
 package com.crudVehiculo.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -13,10 +18,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
@@ -38,12 +46,14 @@ public class VehiculoControllerTest {
 	@MockBean
 	private IVehiculoService vehiculoService;
 	
+	@InjectMocks
+    private VehiculoController vehiculoController;
+	
 	@Test
 	public void getVehiculosOkTest() throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
 		
 		Vehiculo v1 = new Vehiculo(1,"Honda","Accord","AZY-551",23500.50);
-		//Product product2 = new Product(2,"avena",5.50);
 		
 		List<Vehiculo> expectedListVehiculos = new ArrayList<>();
 		expectedListVehiculos.add(v1);
@@ -99,15 +109,15 @@ public class VehiculoControllerTest {
 		
 		int actualStatus = mvcResult.getResponse().getStatus();
 		String content = mvcResult.getResponse().getContentAsString();
-		Vehiculo actualSale = mapper.readValue(content, Vehiculo.class);
+		Vehiculo actualVehiculo = mapper.readValue(content, Vehiculo.class);
 
 
 		assertEquals(expectedStatus, actualStatus);
-		assertEquals(actualSale.getId(), expectedVehiculo.getId());
-		assertEquals(actualSale.getMarca(), expectedVehiculo.getMarca());
-		assertEquals(actualSale.getModelo(), expectedVehiculo.getModelo());
-		assertEquals(actualSale.getPlaca(), expectedVehiculo.getPlaca());
-		assertEquals(actualSale.getPrecio(), expectedVehiculo.getPrecio());
+		assertEquals(actualVehiculo.getId(), expectedVehiculo.getId());
+		assertEquals(actualVehiculo.getMarca(), expectedVehiculo.getMarca());
+		assertEquals(actualVehiculo.getModelo(), expectedVehiculo.getModelo());
+		assertEquals(actualVehiculo.getPlaca(), expectedVehiculo.getPlaca());
+		assertEquals(actualVehiculo.getPrecio(), expectedVehiculo.getPrecio());
 	}
 	
 	@Test
@@ -131,24 +141,73 @@ public class VehiculoControllerTest {
         assertEquals(expectedStatus, actualStatus);
 	}
 	
+	@Test
+	public void getVehiculoByIdTest() throws Exception {
+		ObjectMapper mapper = new ObjectMapper();
+		Vehiculo expectedVehiculo = new Vehiculo(1,"Honda","Accord","AZY-551",23500.50);
+		
+		int expectedStatus = 200;
+		String uri = "/v1/vehiculos/1";
+
+		
+		when(vehiculoService.getVehiculoById(anyString())).thenReturn(expectedVehiculo);
+		
+		MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.get(uri)
+				.contentType(MediaType.APPLICATION_JSON)).andReturn();
+		
+		int actualStatus = mvcResult.getResponse().getStatus();
+		String content = mvcResult.getResponse().getContentAsString();
+		Vehiculo actualVehiculo = mapper.readValue(content, Vehiculo.class);
+
+		assertEquals(expectedStatus, actualStatus);
+		assertEquals(actualVehiculo.getId(), expectedVehiculo.getId());
+		assertEquals(actualVehiculo.getMarca(), expectedVehiculo.getMarca());
+		assertEquals(actualVehiculo.getModelo(), expectedVehiculo.getModelo());
+		assertEquals(actualVehiculo.getPlaca(), expectedVehiculo.getPlaca());
+		assertEquals(actualVehiculo.getPrecio(), expectedVehiculo.getPrecio());
+	}
+	
+	@Test
+    void getVehiculoByIdExceptionTest() throws Exception {
+        
+		ObjectMapper mapper = new ObjectMapper();
+		 String idVehiculo = "1";
+		
+		int expectedStatus = 500;
+		String uri = "/v1/vehiculos/1";
+		
+		VehiculoDTO vehiculoDTO = new VehiculoDTO("Honda","Accord","AZY-551",23500.50);
+
+	    String bodyString = mapper.writeValueAsString(vehiculoDTO);
+        when(vehiculoService.getVehiculoById(anyString())).thenThrow(new RuntimeException("Internal Server Error"));
+        
+        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.get(uri,idVehiculo)
+        		.contentType(MediaType.APPLICATION_JSON)
+        		.content(bodyString))
+        		.andReturn();
+        int actualStatus = mvcResult.getResponse().getStatus();
+
+        assertEquals(expectedStatus, actualStatus);
+    }
+	
 	
 	@Test
 	public void updateVehiculoTest()  throws Exception{
-		// Arrange
+		
         String idVehiculo = "1";
         VehiculoDTO vehiculoDTO = new VehiculoDTO("Honda","Accord","AZY-551",23500.50);
         Vehiculo vehiculoMock = new Vehiculo(1,"Honda","Accord","AZY-551",23500.50);
 
         when(vehiculoService.updateVehiculo(any(VehiculoDTO.class), eq(idVehiculo))).thenReturn(vehiculoMock);
 
-        // Act & Assert
+        
         mockMvc.perform(MockMvcRequestBuilders.put("/v1/vehiculos/{idVehiculo}", idVehiculo)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(asJsonString(vehiculoDTO)))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(vehiculoMock.getId()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.marca").value(vehiculoMock.getMarca()));
-        // Ajusta las verificaciones según la estructura de tu objeto Vehiculo
+        
 	}
 	
 	private String asJsonString(Object obj) throws Exception {
@@ -156,27 +215,55 @@ public class VehiculoControllerTest {
     }
 	
 	
+	
+	
+	
 	@Test
     void updateVehiculoExceptionTest() throws Exception {
-        // Arrange
-        String idVehiculo = "1";
-        VehiculoDTO vehiculoDTO = new VehiculoDTO("Honda","Accord","AZY-551",23500.50);
+        
+		ObjectMapper mapper = new ObjectMapper();
+		 String idVehiculo = "1";
+		
+		int expectedStatus = 500;
+		String uri = "/v1/vehiculos/1";
+		
+		VehiculoDTO vehiculoDTO = new VehiculoDTO("Honda","Accord","AZY-551",23500.50);
 
-        // Simular una excepción en el servicio
-        when(vehiculoService.updateVehiculo(any(VehiculoDTO.class), eq(idVehiculo)))
-                .thenThrow(new RuntimeException("Simulación de error en el servicio"));
+	    String bodyString = mapper.writeValueAsString(vehiculoDTO);
+        when(vehiculoService.updateVehiculo(any(VehiculoDTO.class),eq(idVehiculo))).thenThrow(new RuntimeException("Internal Server Error"));
+        
+        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.put(uri,idVehiculo)
+        		.contentType(MediaType.APPLICATION_JSON)
+        		.content(bodyString))
+        		.andReturn();
+        int actualStatus = mvcResult.getResponse().getStatus();
 
-        // Act
-        ResultActions resultActions = mockMvc.perform(
-                put("/v1/vehiculos/{idVehiculo}", idVehiculo)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(asJsonString(vehiculoDTO))
-        );
-
-        // Assert
-        resultActions.andExpect(status().isInternalServerError())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("Simulación de error en el servicio").exists());
+        assertEquals(expectedStatus, actualStatus);
     }
+	
+	
+	
+	@Test
+    void deleteVehiculoTest() throws Exception {
+		
+        String idVehiculo = "1";
 
+        
+        mockMvc.perform(delete("/v1/vehiculos/{idVehiculo}", idVehiculo))
+                .andExpect(status().isNoContent());
+
+        verify(vehiculoService).deleteVehiculo(idVehiculo);
+    }
+	
+	@Test
+    void deleteVehiculoErrorTest() throws Exception {
+        
+        String idVehiculo = "1";
+
+        doThrow(new RuntimeException("Simulación de error en el servicio"))
+        .when(vehiculoService).deleteVehiculo(anyString());
+
+        mockMvc.perform(delete("/v1/vehiculos/{idVehiculo}", idVehiculo))
+                .andExpect(status().isInternalServerError());
+    }
 }

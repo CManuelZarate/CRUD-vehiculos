@@ -68,7 +68,7 @@ public class VehiculoController {
 	
 	@PutMapping("/{idVehiculo}")
 	@Transactional
-	public ResponseEntity<?> updateVehiculo(@RequestBody VehiculoDTO userDto, @PathVariable String idVehiculo){
+	public ResponseEntity<Vehiculo> updateVehiculo(@RequestBody VehiculoDTO userDto, @PathVariable String idVehiculo){
 		try {
 			Vehiculo vehiculo = vehiculoService.updateVehiculo(userDto, idVehiculo);
 			return ResponseEntity.status(HttpStatus.OK).body(vehiculo);
