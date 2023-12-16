@@ -4,13 +4,18 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import com.crudVehiculo.dto.VehiculoDTO;
+import com.crudVehiculo.model.Usuario;
 import com.crudVehiculo.model.Vehiculo;
 import com.crudVehiculo.repository.IVehiculoRepository;
 
 @Service
 public class VehiculoServiceImpl implements IVehiculoService {
+	
+	@Autowired
+    RestTemplate rt;
 	
 	@Autowired
 	private IVehiculoRepository vehiculoRepository;
@@ -40,6 +45,13 @@ public class VehiculoServiceImpl implements IVehiculoService {
 	@Override
 	public void deleteVehiculo(String idVehiculo) {
 		vehiculoRepository.deleteVehiculo(idVehiculo);
+	}
+
+	@Override
+	public List<Usuario> vehiculoxUsuario() {
+		List <Usuario> us= rt.getForObject("http://microservicio-usuarios/v1/usuarios",List.class);
+		System.out.println(us);
+		return us;
 	}
 
 }

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.crudVehiculo.dto.VehiculoDTO;
+import com.crudVehiculo.model.Usuario;
 import com.crudVehiculo.model.Vehiculo;
 import com.crudVehiculo.service.IVehiculoService;
 
@@ -91,4 +92,16 @@ public class VehiculoController {
 			return ResponseEntity.internalServerError().build();
 		}
 	}
+	
+	@GetMapping("/usuarios")
+	public ResponseEntity<List<Usuario>> usuariosVehiculo() {
+		try {
+			List<Usuario> usuarios = vehiculoService.vehiculoxUsuario();		
+			return ResponseEntity.status(HttpStatus.OK).body(usuarios);
+		}
+		catch(Exception ex) {
+			log.error(ex.getMessage());
+			return ResponseEntity.internalServerError().build();
+		}
+    }
 }
