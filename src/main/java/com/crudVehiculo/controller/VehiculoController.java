@@ -104,4 +104,16 @@ public class VehiculoController {
 			return ResponseEntity.internalServerError().build();
 		}
     }
+	
+	@GetMapping("/usuarios/feign")
+	public ResponseEntity<List<Usuario>> usuariosVehiculoFeign() {
+		try {
+			List<Usuario> usuarios = vehiculoService.vehiculoxUsuarioxFeign();		
+			return ResponseEntity.status(HttpStatus.OK).body(usuarios);
+		}
+		catch(Exception ex) {
+			log.error(ex.getMessage());
+			return ResponseEntity.internalServerError().build();
+		}
+    }
 }

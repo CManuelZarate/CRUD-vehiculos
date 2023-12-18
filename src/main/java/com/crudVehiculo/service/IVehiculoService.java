@@ -13,4 +13,5 @@ public interface IVehiculoService {
 	public Vehiculo updateVehiculo(VehiculoDTO vehiculoDto, String idVehiculo);
 	public void deleteVehiculo(String idVehiculo);
 	public List<Usuario> vehiculoxUsuario();
+	public List<Usuario> vehiculoxUsuarioxFeign();
 }

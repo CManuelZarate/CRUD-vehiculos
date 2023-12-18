@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.crudVehiculo.clients.UsuariosFeignClient;
 import com.crudVehiculo.dto.VehiculoDTO;
 import com.crudVehiculo.model.Usuario;
 import com.crudVehiculo.model.Vehiculo;
@@ -13,6 +14,9 @@ import com.crudVehiculo.repository.IVehiculoRepository;
 
 @Service
 public class VehiculoServiceImpl implements IVehiculoService {
+	
+	@Autowired
+	private UsuariosFeignClient feignClient; 
 	
 	@Autowired
     RestTemplate rt;
@@ -52,6 +56,12 @@ public class VehiculoServiceImpl implements IVehiculoService {
 		List <Usuario> us= rt.getForObject("http://microservicio-usuarios/v1/usuarios",List.class);
 		System.out.println(us);
 		return us;
+	}
+
+	@Override
+	public List<Usuario> vehiculoxUsuarioxFeign() {
+		// TODO Auto-generated method stub
+		return feignClient.getUsuarios();
 	}
 
 }
