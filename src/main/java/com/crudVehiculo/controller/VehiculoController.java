@@ -1,8 +1,11 @@
 package com.crudVehiculo.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,11 +32,29 @@ public class VehiculoController {
 	@Autowired
 	private IVehiculoService vehiculoService;
 	
+	@Value("${config.balanceador.test}")
+	private String balanceadorTest;
+	
 	@GetMapping("")
 	public ResponseEntity<List<Vehiculo>> getVehiculos(){
 		try {
 			List<Vehiculo> vehiculos = vehiculoService.getVehiculos();			
 			return ResponseEntity.status(HttpStatus.OK).body(vehiculos);
+		}
+		catch(Exception ex) {
+			log.error(ex.getMessage());
+			return ResponseEntity.internalServerError().build();
+		}
+	}
+	
+	@GetMapping("/balanceador-test")
+	public ResponseEntity<Map<String, Object>> balanceador(){
+		try {
+			List<Vehiculo> vehiculos = vehiculoService.getVehiculos();
+			Map<String,Object> response = new HashMap<String,Object>();
+			response.put("balanceador", balanceadorTest);
+			response.put("vehiculos", vehiculos);
+			return ResponseEntity.status(HttpStatus.OK).body(response);
 		}
 		catch(Exception ex) {
 			log.error(ex.getMessage());
